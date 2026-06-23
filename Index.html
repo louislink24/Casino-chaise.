@@ -1,183 +1,64 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-<meta charset="UTF-8">
-<title>🎰 Casino de la Chaise™ 🎰</title>
-<style>
-body {
-    font-family: "Comic Sans MS", cursive, sans-serif;
-    text-align: center;
-    background: #000;
-    color: #fff;
-}
-h1 {
-    color: #ff0;
-    text-shadow: 2px 2px 0 #000;
-    font-size: 36px;
-}
-#money {
-    font-size: 24px;
-    margin: 20px;
-}
-#reels {
-    font-size: 60px;
-    margin: 20px;
-    height: 80px;
-}
-button {
-    font-size: 20px;
-    padding: 10px 20px;
-    margin: 10px;
-    background: #ff0;
-    border: 2px solid #fff;
-    border-radius: 10px;
-    cursor: pointer;
-    font-weight: bold;
-    color: #000;
-}
-button:hover {
-    background: #ffa500;
-}
-.tm {
-    cursor: pointer;
-}
-
-/* GAME OVER SCREEN */
-#gameOverScreen {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: black;
-    color: red;
-    font-size: 50px;
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
-}
-</style>
-</head>
-<body>
-
-<h1>
-🎰 Casino de la Chaise
-<span class="tm" onclick="cheat()">™</span>
-🎰
-</h1>
-
-<div id="money">💰 Argent : 100€</div>
-<div id="reels">🎲 🎲 🎲</div>
-
-<button onclick="spin(10)">Miser 10€</button>
-<button onclick="spin(20)">Miser 20€</button>
-<button onclick="spinAll()">Tout miser</button>
-
-<!-- GAME OVER -->
-<div id="gameOverScreen">
-    💀 GAME OVER 💀
-    <button onclick="restart()">Restart</button>
-</div>
-
 <script>
-
 let money = 100;
-const startingMoney = 100;
+const startMoney = 100;
+
 const symbols = ["🍒","🍋","🔔","💎","7️⃣","6️⃣"];
+
 const reelsDiv = document.getElementById("reels");
 const moneyDiv = document.getElementById("money");
 const gameOverScreen = document.getElementById("gameOverScreen");
 
 function updateMoney() {
-    moneyDiv.innerText = "💰 Argent : " + money + "€";
-    if(money <= 0){
-        gameOver();
+    moneyDiv.textContent = "💰 Argent : " + money + "€";
+
+    if (money <= 0) {
+        gameOverScreen.style.display = "flex";
     }
 }
 
-function gameOver(){
-    gameOverScreen.style.display = "flex";
-}
-
-function restart(){
-    money = startingMoney;
+function restart() {
+    money = startMoney;
     gameOverScreen.style.display = "none";
-    reelsDiv.innerText = "🎲 🎲 🎲";
+    reelsDiv.textContent = "🎲 🎲 🎲";
     updateMoney();
 }
 
-function animateReels(finalResult, callback) {
-    let count = 0;
-    const animation = setInterval(() => {
-        const spinResult = symbols.map(() => symbols[Math.floor(Math.random()*symbols.length)]);
-        reelsDiv.innerText = spinResult.join(" ");
-        count++;
-        if(count > 15){
-            clearInterval(animation);
-            reelsDiv.innerText = finalResult.join(" ");
-            callback();
-        }
-    }, 80);
-}
+function spin(bet) {
+    if (money <= 0) return;
 
-function spin(bet){
-    if(bet > money || money <= 0) { return; }
-
+    bet = Math.min(bet, money);
     money -= bet;
-    updateMoney();
 
-    const result = symbols.map(() => symbols[Math.floor(Math.random()*symbols.length)]);
+    // 🎲 résultat instantané
+    const result = [
+        symbols[Math.floor(Math.random() * symbols.length)],
+        symbols[Math.floor(Math.random() * symbols.length)],
+        symbols[Math.floor(Math.random() * symbols.length)]
+    ];
 
-    animateReels(result, () => {
+    reelsDiv.textContent = result.join(" ");
 
-        if(result[0]==result[1] && result[1]==result[2] && result[0]=="6️⃣"){
-            alert("😱 TRIPLE 6️⃣ ! Tout perdu !");
-            money = startingMoney;
+    // 💀 logique de gain/perte
+    if (result[0] === result[1] && result[1] === result[2]) {
 
-        } else if(result[0]==result[1] && result[1]==result[2]){
-
-            if(result[0]=="7️⃣"){ 
-                money += bet*10; 
-                alert("🔥 Jackpot x10 !");
-            }
-            else if(result[0]=="💎"){ 
-                money += bet*7; 
-                alert("💎 Gain x7 !");
-            }
-            else { 
-                money += bet*5; 
-                alert("Gain x5 !");
-            }
-
-        } else if(result[0]==result[1] || result[1]==result[2] || result[0]==result[2]){
-            money += bet*2; 
-            alert("Gain x2 !");
+        if (result[0] === "7️⃣") {
+            money += bet * 10;
+        } else if (result[0] === "💎") {
+            money += bet * 7;
         } else {
-            alert("😭 Perdu...");
+            money += bet * 5;
         }
 
-        updateMoney();
-    });
-}
+    } else if (
+        result[0] === result[1] ||
+        result[1] === result[2] ||
+        result[0] === result[2]
+    ) {
+        money += bet * 2;
+    }
 
-function spinAll(){
-    spin(money);
-}
-
-function cheat(){
-    if(money <= 0) return;
-
-    const bet = money;
-    reelsDiv.innerText = "6️⃣ 7️⃣ 6️⃣ 7️⃣";
-    money = bet * 10000;
-    alert("👑 Cheat secret activé x10000");
     updateMoney();
 }
 
 updateMoney();
-
-</script>
-
-</body>
-  </html>
+        </script>
